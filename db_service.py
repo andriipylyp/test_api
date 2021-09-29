@@ -20,10 +20,6 @@ class db_service:
 		return 1 if cls.is_instance == 0 else 0
 
 	@staticmethod
-	def load_data(obj):
-		return list(obj.find())
-
-	@staticmethod
 	def get_last_id(obj):
 		ID = list(obj.find({}, {'_id': True}).sort('_id', pymongo.DESCENDING).limit(1))
 		return ID[0]['_id'] if len(ID) > 0 else -1
