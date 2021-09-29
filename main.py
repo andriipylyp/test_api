@@ -66,7 +66,7 @@ def get_items_from_db():
 		return response_f(res,200)
 	return response_f({'Message':res},204)
 
-@app.route('/send', methods=['POST'])
+@app.route('/send', methods=['POST']) #sd
 def generate_link():
 	item_id, user_login = [int(request.form['id']), request.form['login']]
 	if item_id and user_login and session['user_id']:
