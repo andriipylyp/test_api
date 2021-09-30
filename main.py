@@ -1,6 +1,6 @@
 from flask import Flask, request, json, session, Response
 from db_service import db_service
-from message_handler import success, api
+from message_handler import api
 db = db_service()
 
 app = Flask(__name__)
