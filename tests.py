@@ -1,5 +1,5 @@
 from db_service import db_service
-from error_handler import errors
+from message_handler import errors
 
 db = db_service()
 if __name__ == '__main__':

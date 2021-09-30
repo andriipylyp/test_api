@@ -3,7 +3,7 @@ import random
 import string
 import certifi
 import re
-from error_handler import errors
+from message_handler import errors
 
 class db_service:
 	is_instance = 0
@@ -94,7 +94,10 @@ class db_service:
 	def get_items(self, user_id: int) -> list:
 		if type(user_id) is int and self.__users.find_one({'_id':user_id}) != None:
 			items = self.__items.find({'user_id':user_id})
-			return [1,list(items)] if len(list(items)) > 0 else [1,errors.item_not_found()]
+			if len(list(items)) != 0:
+				print(len(list(items)))
+				return [1,list(items)]
+			return [1,errors.item_not_found()]
 		else:
 			return [0, str(errors('user_id'))+'OR'+errors.user_not_found()]
 

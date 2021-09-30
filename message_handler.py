@@ -1,3 +1,6 @@
+from os import stat
+
+
 class errors:
     def __init__(self, *args) -> None:
         self.arguments = args
@@ -26,3 +29,27 @@ class errors:
     @staticmethod
     def nothing_to_receive():
         return 'Nothing to receive.'
+    
+class api:
+    def __init__(self) -> None:
+        pass
+
+    @staticmethod
+    def operation_success(operation):
+        return f'{operation} was successful.'
+
+    @staticmethod
+    def not_provided(*args):
+        s = 'Not provided:'
+        [s.append(x) for x in args]
+        return ' '.join(s)
+    
+    @staticmethod
+    def not_logged():
+        return 'You are not logged.'
+
+    @staticmethod
+    def wrong_type(att, tp):
+        return f'{att} must be {tp}'
+
+    
