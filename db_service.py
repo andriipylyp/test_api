@@ -109,8 +109,13 @@ class db_service:
 
 	def receive_item(self, user_id: int, key: str) -> list:
 		if type(user_id) is int and type(key) is str:
-			login = list(self.__users.find({'_id':user_id}, {'_id': False, '_login':True}))[0]['_login']
-			item_to_receive = list(self.__items.find({'new_user_login':login, 'key':key}, {'_id':True}))[0]['_id']
+			res = list(self.__users.find({'_id':user_id}, {'_id': False, '_login':True}))
+			item_to_receive = []
+			if len(res) > 0:
+				login = res[0]['_login']
+				res = list(self.__items.find({'new_user_login':login, 'key':key}, {'_id':True}))
+				if len(res) > 0:
+					item_to_receive = res[0]['_id']
 			return [1, self.__items.update_one({'_id':item_to_receive}, {'$set': {'user_id':user_id}, '$unset': {'new_user_login':'', 'key':''}})] if len(item_to_receive) > 0 else [0, 'Nothing to receive']
 		else:
 			return [0, 'wrong user_id, key type.']
