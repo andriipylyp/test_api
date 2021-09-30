@@ -24,7 +24,7 @@ def registration():
 		else:
 			return response_f({'Message':res}, 409)
 	else:
-		return response_f({'Message':api.not_provided('Login', 'Password')}, 204)
+		return response_f({"Message":api.not_provided("Login", "Password")}, 200)
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -39,27 +39,27 @@ def login():
 		else:
 			return response_f({'Message':res}, 403)
 	else:
-		return response_f({'Message':api.not_provided('Login', 'Password')}, 204)
+		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
 
 @app.route('/items/new', methods=['POST'])
 def new_item():
 	json_body = request.get_json()
 	name = json_body['name']
-	if name and session['user_id'] != None:
+	if len(name) > 0 and session['user_id'] != None:
 		status, res = db.add_item(name,session['user_id'])
 		if status == 1:
 			return response_f({'Message':api.operation_success('Item creation'), 'Id':res, 'Name':name},200)
 		else:
 			return response_f({'Message':res},403)
 	else:
-		return response_f({'Message':api.not_provided('Item name')+' OR '+api.not_logged()},204)
+		return response_f({'Message':api.not_provided('Item name')+' OR '+api.not_logged()},200)
 
 @app.route('/items/<id>', methods=['DELETE'])
 def delete_item(id):
 	try:
 		item_id = int(id)
 	except ValueError:
-		return response_f({'Message':api.wrong_type('id','int')}, 204)
+		return response_f({'Message':api.wrong_type('id','int')}, 200)
 	status, res = db.delete_item(item_id, session['user_id'])
 	if status == 1:
 		return response_f({'Message':api.operation_success('Detete')},200)
@@ -71,7 +71,7 @@ def get_items_from_db():
 	status, res = db.get_items(session['user_id'])
 	if status == 1:
 		return response_f(res,200)
-	return response_f({'Message':res},204)
+	return response_f({'Message':res},200)
 
 @app.route('/send', methods=['POST'])
 def generate_link():
@@ -84,7 +84,7 @@ def generate_link():
 		else:
 			return response_f({'Message':res}, 406)
 	else:
-		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},204)
+		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},200)
 
 @app.route('/get/<key>', methods=['GET'])
 def get_item(key):
