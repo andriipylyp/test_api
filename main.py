@@ -50,7 +50,7 @@ def new_item():
 		if status == 1:
 			return response_f({'Message':api.operation_success('Item creation'), 'Id':res, 'Name':name},200)
 		else:
-			return response_f({'Message':res},500)
+			return response_f({'Message':res},403)
 	else:
 		return response_f({'Message':api.not_provided('Item name')+' OR '+api.not_logged()},204)
 
@@ -64,7 +64,7 @@ def delete_item(id):
 	if status == 1:
 		return response_f({'Message':api.operation_success('Detete')},200)
 	else:
-		return response_f({'Message':res},500)
+		return response_f({'Message':res},403)
 
 @app.route('/items', methods=['GET'])
 def get_items_from_db():

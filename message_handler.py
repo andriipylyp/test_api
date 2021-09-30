@@ -37,7 +37,7 @@ class api:
 
     @staticmethod
     def not_provided(*args):
-        s = 'Not provided:'
+        s = ['Not provided:']
         [s.append(x) for x in args]
         return ' '.join(s)
     
