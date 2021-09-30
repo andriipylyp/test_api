@@ -52,7 +52,7 @@ class db_service:
 			except pymongo.errors.PyMongoError as e:
 				return [0, e]
 		else:
-			return [0, str(errors('login', 'password'))+'OR'+errors.wrong_login_pas()]
+			return [0, str(errors('login', 'password'))+' OR '+errors.wrong_login_pas()]
 
 	def get_user(self, login:str, password:str) -> list:
 		if type(password) is str and type(login) is str:
@@ -89,7 +89,7 @@ class db_service:
 			else:
 				return [0, errors.user_not_found()]
 		else:
-			return [0, str(errors('item_id', 'user_id'))+'OR'+errors.item_not_found()]
+			return [0, str(errors('item_id', 'user_id'))+' OR '+errors.item_not_found()]
 
 	def get_items(self, user_id: int) -> list:
 		if type(user_id) is int and self.__users.find_one({'_id':user_id}) != None:
@@ -98,7 +98,7 @@ class db_service:
 				return [1,items]
 			return [1,errors.item_not_found()]
 		else:
-			return [0, str(errors('user_id'))+'OR'+errors.user_not_found()]
+			return [0, str(errors('user_id'))+' OR '+errors.user_not_found()]
 
 	def send_item(self, item_id: int, login: str, user_id:int) -> list:
 		if type(item_id) is int and type(login) is str and type(user_id) is int:
@@ -106,7 +106,7 @@ class db_service:
 				key = db_service.create_token(6)
 				self.__items.update_one({'_id':item_id}, {'$set': {'new_user_login': login, 'key':key}})
 				return [1, key]
-			return [0, errors.user_not_found()+'OR'+errors.item_not_found()]
+			return [0, errors.user_not_found()+' OR '+errors.item_not_found()]
 		else:
 			return [0, str(errors('item_id', 'login', 'user_id'))]
 
@@ -119,7 +119,7 @@ class db_service:
 				res = list(self.__items.find({'new_user_login':login, 'key':key}, {'_id':True}))
 				if len(res) > 0:
 					item_to_receive = res[0]['_id']
-			return [1, self.__items.update_one({'_id':item_to_receive}, {'$set': {'user_id':user_id}, '$unset': {'new_user_login':'', 'key':''}})] if len(item_to_receive) > 0 else [0, errors.nothing_to_receive()]
+			return [1, self.__items.update_one({'_id':item_to_receive}, {'$set': {'user_id':user_id}, '$unset': {'new_user_login':'', 'key':''}})] if type(item_to_receive) is not list else [0, errors.nothing_to_receive()]
 		else:
 			return [0, str(errors('user_id', 'key'))]
 

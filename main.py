@@ -52,7 +52,7 @@ def new_item():
 		else:
 			return response_f({'Message':res},500)
 	else:
-		return response_f({'Message':api.not_provided('Item name')+'OR'+api.not_logged()},204)
+		return response_f({'Message':api.not_provided('Item name')+' OR '+api.not_logged()},204)
 
 @app.route('/items/<id>', methods=['DELETE'])
 def delete_item(id):
@@ -84,7 +84,7 @@ def generate_link():
 		else:
 			return response_f({'Message':res}, 406)
 	else:
-		return response_f({'Message':api.not_provided('item_id', 'user_login')+'OR'+api.not_logged()},204)
+		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},204)
 
 @app.route('/get/<key>', methods=['GET'])
 def get_item(key):
