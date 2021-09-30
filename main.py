@@ -8,14 +8,15 @@ app.secret_key = 'super secret key'
 
 def response_f(response, status):
 	return Response(
-			response=json.dumps({response}),
+			response=json.dumps(response),
 			status=status,
 			mimetype='application/json'
 			)
 
 @app.route('/registration', methods=['POST'])
 def registration():
-	login, password = [request.form['login'], request.form['password']]
+	json_body = request.get_json()
+	login, password = [json_body['login'], json_body['password']]
 	if login and password:
 		status, res = db.add_user(login, password)
 		if status == 1:
@@ -27,7 +28,8 @@ def registration():
 
 @app.route('/login', methods=['POST'])
 def login():
-	login, password = [request.form['login'], request.form['password']]
+	json_body = request.get_json()
+	login, password = [json_body['login'], json_body['password']]
 	if login and password:
 		status, res = db.get_user(login, password)
 		if status == 1:
@@ -41,7 +43,8 @@ def login():
 
 @app.route('/items/new', methods=['POST'])
 def new_item():
-	name = request.form['name']
+	json_body = request.get_json()
+	name = json_body['name']
 	if name and session['user_id'] != None:
 		status, res = db.add_item(name,session['user_id'])
 		if status == 1:
@@ -72,7 +75,8 @@ def get_items_from_db():
 
 @app.route('/send', methods=['POST'])
 def generate_link():
-	item_id, user_login = [int(request.form['id']), request.form['login']]
+	json_body = request.get_json()
+	item_id, user_login = [int(json_body['id']), json_body['login']]
 	if item_id and user_login and session['user_id'] != None:
 		status, res = db.send_item(item_id, user_login, session['user_id'])
 		if status == 1:

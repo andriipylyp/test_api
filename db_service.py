@@ -93,10 +93,9 @@ class db_service:
 
 	def get_items(self, user_id: int) -> list:
 		if type(user_id) is int and self.__users.find_one({'_id':user_id}) != None:
-			items = self.__items.find({'user_id':user_id})
-			if len(list(items)) != 0:
-				print(len(list(items)))
-				return [1,list(items)]
+			items = list(self.__items.find({'user_id':user_id}, {'_id':True, 'name':True}))
+			if len(items) != 0:
+				return [1,items]
 			return [1,errors.item_not_found()]
 		else:
 			return [0, str(errors('user_id'))+'OR'+errors.user_not_found()]
