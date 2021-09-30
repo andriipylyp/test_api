@@ -16,7 +16,10 @@ def response_f(response, status):
 @app.route('/registration', methods=['POST'])
 def registration():
 	json_body = request.get_json()
-	login, password = [json_body['login'], json_body['password']]
+	try:
+		login, password = [json_body['login'], json_body['password']]
+	except KeyError:
+		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
 	if login and password:
 		status, res = db.add_user(login, password)
 		if status == 1:
@@ -29,7 +32,10 @@ def registration():
 @app.route('/login', methods=['POST'])
 def login():
 	json_body = request.get_json()
-	login, password = [json_body['login'], json_body['password']]
+	try:
+		login, password = [json_body['login'], json_body['password']]
+	except KeyError:
+		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
 	if login and password:
 		status, res = db.get_user(login, password)
 		if status == 1:
@@ -44,7 +50,10 @@ def login():
 @app.route('/items/new', methods=['POST'])
 def new_item():
 	json_body = request.get_json()
-	name = json_body['name']
+	try:
+		name = json_body['name']
+	except KeyError:
+		return response_f({'Message':api.not_provided('Name')+' OR '+api.not_logged()},200)
 	if len(name) > 0 and session['user_id'] != None:
 		status, res = db.add_item(name,session['user_id'])
 		if status == 1:
@@ -76,7 +85,10 @@ def get_items_from_db():
 @app.route('/send', methods=['POST'])
 def generate_link():
 	json_body = request.get_json()
-	item_id, user_login = [int(json_body['id']), json_body['login']]
+	try:
+		item_id, user_login = [int(json_body['id']), json_body['login']]
+	except KeyError:
+		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},200)
 	if item_id and user_login and session['user_id'] != None:
 		status, res = db.send_item(item_id, user_login, session['user_id'])
 		if status == 1:
