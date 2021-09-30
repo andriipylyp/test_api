@@ -1,6 +1,3 @@
-from os import stat
-
-
 class errors:
     def __init__(self, *args) -> None:
         self.arguments = args
