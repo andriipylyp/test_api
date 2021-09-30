@@ -3,10 +3,11 @@ import random
 import string
 import certifi
 import re
+from error_handler import errors
 
 class db_service:
 	is_instance = 0
-	def __init__(self):
+	def __init__(self) -> None:
 		if db_service.check_if_instance():
 			db_service.is_instance = 1
 			client = pymongo.MongoClient('mongodb+srv://root:root@cluster0.mlnhr.mongodb.net/test_api', tlsCAFile=certifi.where())
@@ -17,27 +18,27 @@ class db_service:
 			raise RuntimeError('Only one instance of db_service can exist.')
 
 	@classmethod
-	def check_if_instance(cls):
+	def check_if_instance(cls) -> int:
 		return 1 if cls.is_instance == 0 else 0
 
 	@staticmethod
-	def get_last_id(obj):
+	def get_last_id(obj) -> int:
 		ID = list(obj.find({}, {'_id': True}).sort('_id', pymongo.DESCENDING).limit(1))
 		return ID[0]['_id'] if len(ID) > 0 else -1
 
 	@staticmethod
-	def create_token(quantity):
+	def create_token(quantity:int) -> string:
 		return ''.join(random.choices(string.ascii_uppercase + string.digits, k=quantity))
 
 	@staticmethod
-	def check_login(s):
+	def check_login(s:string) -> re:
 		return re.search('^[a-zA-Z]([A-Za-z0-9_@$%&\.])*$', s)
 
 	@staticmethod
-	def check_password(s):
+	def check_password(s:string) -> re:
 		return re.search('^[a-zA-Z0-9_@$^%&]([A-Za-z0-9_@$%&^])*$', s)
 
-	def check_if_login(self, login):
+	def check_if_login(self, login:string) -> int:
 		return 0 if len(list(self.__users.find({'_login':login}, {'_id':True}))) == 0 else 1
 
 	def add_user(self, login:str, password:str) -> list:
@@ -47,11 +48,11 @@ class db_service:
 					self.__users.insert_one({'_id': db_service.get_last_id(self.__users)+1, '_login': login, 'password': password})
 					return [1, '']
 				else:
-					return [0, 'Login occupied.']
+					return [0, errors.login_occupied()]
 			except pymongo.errors.PyMongoError as e:
 				return [0, e]
 		else:
-			return [0, 'login or password has wrong type OR login or password has incorrect characters.']
+			return [0, str(errors('login', 'password'))+'OR'+errors.wrong_login_pas()]
 
 	def get_user(self, login:str, password:str) -> list:
 		if type(password) is str and type(login) is str:
@@ -61,11 +62,11 @@ class db_service:
 				if len(res) > 0:
 					return [1, res[0]['_id']]
 				else:
-					return [0, 'wrong login or password.']
+					return [0, errors.wrong_login_pas()]
 			except pymongo.errors.PyMongoError as e:
 				return [0, e]
 		else:	
-			return [0, 'wrong login, password types.']
+			return [0, str(errors('login', 'password'))]
 
 	def add_item(self, name: str, user_id: int) -> list:
 		if type(user_id) is int and type(name) is str:
@@ -74,11 +75,11 @@ class db_service:
 					self.__items.insert_one({'_id': db_service.get_last_id(self.__items)+1, 'name': name, 'user_id':user_id})
 					return [1, db_service.get_last_id(self.__items)]
 				else:
-					return [0, 'user not found.']
+					return [0, errors.user_not_found()]
 			except pymongo.errors.PyMongoError as e:
 				return [0, e]
 		else:
-			return [0, 'name must be str and user_id must be int.']
+			return [0, str(errors('user_id', 'name'))]
 
 	def delete_item(self, item_id: int, user_id: int) -> list:
 		if type(item_id) is int and self.__items.find_one({'_id':item_id}) != None and type(user_id) is int:
@@ -86,16 +87,16 @@ class db_service:
 				self.__items.delete_one({'_id': item_id, 'user_id':user_id})
 				return [1, '']
 			else:
-				return [0, 'user not found.']
+				return [0, errors.user_not_found()]
 		else:
-			return [0, 'item_id, user_id must be integers or item does not exist.']
+			return [0, str(errors('item_id', 'user_id'))+'OR'+errors.item_not_found()]
 
 	def get_items(self, user_id: int) -> list:
 		if type(user_id) is int and self.__users.find_one({'_id':user_id}) != None:
 			items = self.__items.find({'user_id':user_id})
-			return [1,list(items)] if len(list(items)) > 0 else [1,'no items']
+			return [1,list(items)] if len(list(items)) > 0 else [1,errors.item_not_found()]
 		else:
-			return [0, 'user user_id must be integer or user does not exist.']
+			return [0, str(errors('user_id'))+'OR'+errors.user_not_found()]
 
 	def send_item(self, item_id: int, login: str, user_id:int) -> list:
 		if type(item_id) is int and type(login) is str and type(user_id) is int:
@@ -103,9 +104,9 @@ class db_service:
 				key = db_service.create_token(6)
 				self.__items.update_one({'_id':item_id}, {'$set': {'new_user_login': login, 'key':key}})
 				return [1, key]
-			return [0, 'item or user does not exist.']
+			return [0, errors.user_not_found()+'OR'+errors.item_not_found()]
 		else:
-			return [0, 'wrong item_id(must be int) or login(must be string) or user_id(must be int).']
+			return [0, str(errors('item_id', 'login', 'user_id'))]
 
 	def receive_item(self, user_id: int, key: str) -> list:
 		if type(user_id) is int and type(key) is str:
@@ -116,16 +117,16 @@ class db_service:
 				res = list(self.__items.find({'new_user_login':login, 'key':key}, {'_id':True}))
 				if len(res) > 0:
 					item_to_receive = res[0]['_id']
-			return [1, self.__items.update_one({'_id':item_to_receive}, {'$set': {'user_id':user_id}, '$unset': {'new_user_login':'', 'key':''}})] if len(item_to_receive) > 0 else [0, 'Nothing to receive']
+			return [1, self.__items.update_one({'_id':item_to_receive}, {'$set': {'user_id':user_id}, '$unset': {'new_user_login':'', 'key':''}})] if len(item_to_receive) > 0 else [0, errors.nothing_to_receive()]
 		else:
-			return [0, 'wrong user_id, key type.']
+			return [0, str(errors('user_id', 'key'))]
 
 	def get_last_user(self):
 		return list(self.__users.find({'_id':db_service.get_last_id(self.__users)}))
 
-	def get_user_id_by_login(self, login):
+	def get_user_id_by_login(self, login:string) -> list:
 		return list(self.__users.find({'_login':login}, {'_id':True, '_login': False}))[0]['_id']
 
-	def get_user_by_id(self, id):
+	def get_user_by_id(self, id:int):
 		return self.__users.find_one({'_id':id}, {'_id':True})
 

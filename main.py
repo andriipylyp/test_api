@@ -34,7 +34,7 @@ def login():
 			session['user_id'] = res
 			return response_f({'Message':'Successfuly logged.'}, 200)
 		else:
-			return response_f({'Message':'Wrong login or password.'}, 403)
+			return response_f({'Message':res}, 403)
 	else:
 		return response_f({'Message':'Login or password was not provided.'}, 204)
 
