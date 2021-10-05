@@ -23,7 +23,7 @@ def registration():
 	except KeyError:
 		return response_f({'Message':Api.not_provided('Login', 'Password')}, 400)
 	except DbServiceError as e:
-		return response_f({'Message':e}, 400)
+		return response_f({'Message':str(e)}, 400)
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -37,7 +37,7 @@ def login():
 	except KeyError:
 		return response_f({'Message':Api.not_provided('Login', 'Password')}, 400)
 	except DbServiceError as e:
-		return response_f({'Message':e}, 400)
+		return response_f({'Message':str(e)}, 400)
 	
 
 @app.route('/items/new', methods=['POST'])
@@ -53,7 +53,7 @@ def new_item():
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		return response_f({'Message':e},403)
+		return response_f({'Message':str(e)},403)
 
 @app.route('/items/<id>', methods=['DELETE'])
 def delete_item(id):
@@ -63,7 +63,7 @@ def delete_item(id):
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		return response_f({'Message':e},403)
+		return response_f({'Message':str(e)},403)
 
 @app.route('/items', methods=['GET'])
 def get_items_from_db():
@@ -73,7 +73,7 @@ def get_items_from_db():
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		return response_f({'Message':e},403)
+		return response_f({'Message':str(e)},403)
 
 @app.route('/send', methods=['POST'])
 def generate_link():
@@ -88,7 +88,7 @@ def generate_link():
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		return response_f({'Message':e},403)
+		return response_f({'Message':str(e)},403)
 
 @app.route('/get/<key>', methods=['GET'])
 def get_item(key):
@@ -98,7 +98,8 @@ def get_item(key):
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		return response_f({'Message':e}, 403)
+		print(str(e))
+		return response_f({'Message':str(e)}, 403)
 
 if __name__ == '__main__':
    app.run(debug=True)
