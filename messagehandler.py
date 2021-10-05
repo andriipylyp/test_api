@@ -1,4 +1,4 @@
-class errors:
+class Errors:
     def __init__(self, *args) -> None:
         self.arguments = args
 
@@ -27,7 +27,7 @@ class errors:
     def nothing_to_receive():
         return 'Nothing to receive.'
     
-class api:
+class Api:
     def __init__(self) -> None:
         pass
 

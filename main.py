@@ -1,7 +1,7 @@
 from flask import Flask, request, json, session, Response
-from db_service import db_service
-from message_handler import api
-db = db_service()
+from dbservice import DbService, DbServiceError
+from messagehandler import Api
+db = DbService()
 
 app = Flask(__name__)
 app.secret_key = 'super secret key'
@@ -18,34 +18,27 @@ def registration():
 	json_body = request.get_json()
 	try:
 		login, password = [json_body['login'], json_body['password']]
+		db.add_user(login, password)
+		return response_f({'Message':Api.operation_success('Operation')}, 200)
 	except KeyError:
-		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
-	if login and password:
-		status, res = db.add_user(login, password)
-		if status == 1:
-			return response_f({'Message':api.operation_success('Operation')}, 200)
-		else:
-			return response_f({'Message':res}, 409)
-	else:
-		return response_f({"Message":api.not_provided("Login", "Password")}, 200)
+		return response_f({'Message':Api.not_provided('Login', 'Password')}, 400)
+	except DbServiceError as e:
+		return response_f({'Message':e}, 400)
 
 @app.route('/login', methods=['POST'])
 def login():
 	json_body = request.get_json()
 	try:
 		login, password = [json_body['login'], json_body['password']]
+		id = db.get_user(login, password)
+		session['login'] = login
+		session['user_id'] = id
+		return response_f({'Message':Api.operation_success('Login')}, 200)
 	except KeyError:
-		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
-	if login and password:
-		status, res = db.get_user(login, password)
-		if status == 1:
-			session['login'] = login
-			session['user_id'] = res
-			return response_f({'Message':api.operation_success('Login')}, 200)
-		else:
-			return response_f({'Message':res}, 403)
-	else:
-		return response_f({'Message':api.not_provided('Login', 'Password')}, 200)
+		return response_f({'Message':Api.not_provided('Login', 'Password')}, 400)
+	except DbServiceError as e:
+		return response_f({'Message':e}, 400)
+	
 
 @app.route('/items/new', methods=['POST'])
 def new_item():
@@ -53,58 +46,59 @@ def new_item():
 	try:
 		name = json_body['name']
 	except KeyError:
-		return response_f({'Message':api.not_provided('Name')+' OR '+api.not_logged()},200)
-	if len(name) > 0 and session['user_id'] != None:
-		status, res = db.add_item(name,session['user_id'])
-		if status == 1:
-			return response_f({'Message':api.operation_success('Item creation'), 'Id':res, 'Name':name},200)
-		else:
-			return response_f({'Message':res},403)
-	else:
-		return response_f({'Message':api.not_provided('Item name')+' OR '+api.not_logged()},200)
+		return response_f({'Message':Api.not_provided('Item name')},400)
+	try:
+		id = db.add_item(name,session['user_id'])
+		return response_f({'Message':Api.operation_success('Item creation'), 'Id':id, 'Name':name},200)
+	except KeyError:
+		return response_f({'Message':Api.not_logged()},401)
+	except DbServiceError as e:
+		return response_f({'Message':e},403)
 
 @app.route('/items/<id>', methods=['DELETE'])
 def delete_item(id):
 	try:
-		item_id = int(id)
-	except ValueError:
-		return response_f({'Message':api.wrong_type('id','int')}, 200)
-	status, res = db.delete_item(item_id, session['user_id'])
-	if status == 1:
-		return response_f({'Message':api.operation_success('Detete')},200)
-	else:
-		return response_f({'Message':res},403)
+		db.delete_item(id, session['user_id'])
+		return response_f({'Message':Api.operation_success('Detete')},200)
+	except KeyError:
+		return response_f({'Message':Api.not_logged()},401)
+	except DbServiceError as e:
+		return response_f({'Message':e},403)
 
 @app.route('/items', methods=['GET'])
 def get_items_from_db():
-	status, res = db.get_items(session['user_id'])
-	if status == 1:
-		return response_f(res,200)
-	return response_f({'Message':res},200)
+	try:
+		items = db.get_items(session['user_id'])
+		return response_f(items,200)
+	except KeyError:
+		return response_f({'Message':Api.not_logged()},401)
+	except DbServiceError as e:
+		return response_f({'Message':e},403)
 
 @app.route('/send', methods=['POST'])
 def generate_link():
 	json_body = request.get_json()
 	try:
-		item_id, user_login = [int(json_body['id']), json_body['login']]
+		item_id, user_login = [json_body['id'], json_body['login']]
 	except KeyError:
-		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},200)
-	if item_id and user_login and session['user_id'] != None:
-		status, res = db.send_item(item_id, user_login, session['user_id'])
-		if status == 1:
-			return response_f({'Link':f'localhost:5000/get/{res}'},200)
-		else:
-			return response_f({'Message':res}, 406)
-	else:
-		return response_f({'Message':api.not_provided('item_id', 'user_login')+' OR '+api.not_logged()},200)
+		return response_f({'Message':Api.not_provided('id', 'login')+' OR '+Api.not_logged()},400)
+	try:
+		key = db.send_item(item_id, user_login, session['user_id'])
+		return response_f({'Link':f'localhost:5000/get/{key}'},200)
+	except KeyError:
+		return response_f({'Message':Api.not_logged()},401)
+	except DbServiceError as e:
+		return response_f({'Message':e},403)
 
 @app.route('/get/<key>', methods=['GET'])
 def get_item(key):
-	status, res = db.receive_item(session['user_id'], key)
-	if status == 1:
-		return response_f({'Message':api.operation_success('Transfer')}, 200)
-	else:
-		return response_f({'Message':res}, 406)
+	try:
+		db.receive_item(session['user_id'], key)
+		return response_f({'Message':Api.operation_success('Transfer')}, 200)
+	except KeyError:
+		return response_f({'Message':Api.not_logged()},401)
+	except DbServiceError as e:
+		return response_f({'Message':e}, 403)
 
 if __name__ == '__main__':
    app.run(debug=True)
