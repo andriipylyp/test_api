@@ -98,7 +98,6 @@ def get_item(key):
 	except KeyError:
 		return response_f({'Message':Api.not_logged()},401)
 	except DbServiceError as e:
-		print(str(e))
 		return response_f({'Message':str(e)}, 403)
 
 if __name__ == '__main__':
