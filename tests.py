@@ -90,8 +90,7 @@ if __name__ == '__main__':
 	#wrong item id
 	assert check_if_error(db.send_item,(666, 'ad', 0)) == 1
 
-	key = '1GGN6F' #wrong key
-	user_id = 1 #wrong user id
+	key = '1GGN6F'
 	#wrong types
 	assert check_if_error(db.receive_item,('1',key)) == 1
 	assert check_if_error(db.receive_item,(1,123)) == 1
