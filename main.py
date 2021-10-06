@@ -19,7 +19,7 @@ def registration():
 	try:
 		login, password = [json_body['login'], json_body['password']]
 		db.add_user(login, password)
-		return response_f({'Message':Api.operation_success('Operation')}, 200)
+		return response_f({'Message':Api.operation_success('Registration')}, 200)
 	except KeyError:
 		return response_f({'Message':Api.not_provided('Login', 'Password')}, 400)
 	except DbServiceError as e:
