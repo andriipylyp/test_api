@@ -81,7 +81,7 @@ def generate_link():
 	try:
 		item_id, user_login = [json_body['id'], json_body['login']]
 	except KeyError:
-		return response_f({'Message':Api.not_provided('id', 'login')+' OR '+Api.not_logged()},400)
+		return response_f({'Message':Api.not_provided('id', 'login')},400)
 	try:
 		key = db.send_item(item_id, user_login, session['user_id'])
 		return response_f({'Link':f'localhost:5000/get/{key}'},200)
